@@ -67,19 +67,26 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("failed to fetch resources: %v", err)
 		}
 		tw := new(tabwriter.Writer).Init(os.Stdout, 0, 5, 5, ' ', 0)
-		header := "NAMESPACE\tNAME\tREGION\tZONE"
+		header := ""
+		if *(kubeResouceBuilderFlags.AllNamespaces) {
+			header += "NAMESPACE\t"
+		}
+		header += "NAME\tREGION\tZONE"
 		if hasSubzone {
 			header += "\tSUBZONE"
 		}
-		tw.Write([]byte(header+"\n"))
+		tw.Write([]byte(header + "\n"))
 		for _, p := range pods {
 			n := nodes[p.Spec.NodeName]
-			d := []string{
-				p.Namespace,
+			d := []string{}
+			if *(kubeResouceBuilderFlags.AllNamespaces) {
+				d = append(d, p.Namespace)
+			}
+			d = append(d,
 				p.Name,
 				n.Region,
 				n.Zone,
-			}
+			)
 			if hasSubzone {
 				d = append(d, n.Subzone)
 			}
